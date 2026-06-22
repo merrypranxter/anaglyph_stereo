@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Anaglyph Hearts</title>
+<style>
+  body,html{margin:0;padding:0;background:#000;font-family: sans-serif;}
+  #canvas{display:block;width:100vw;height:100vh;}
+  #controls{position:fixed;top:10px;left:10px;color:#fff;background:rgba(0,0,0,0.5);padding:10px;border-radius:8px;font-size:14px;font-family:monospace;}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="controls">
+  separation: <input id="sep" type="range" min="0" max="0.1" step="0.001" value="0.03"><span id="sepVal">0.03</span>
+</div>
+<script>
+// hearts anaglyph example
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+window.addEventListener('resize',resize);resize();
+const hearts=[];
+const N=30;
+for(let i=0;i<N;i++){
+  hearts.push({x:Math.random(), y:Math.random(), size:30+Math.random()*40, speed:0.2+Math.random()*0.4, depth:Math.random()});
+}
+function drawHeart(ctx,x,y,s,color){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(s,s);
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.bezierCurveTo(0,-0.3, -0.5,-0.35, -0.5,-0.1);
+  ctx.bezierCurveTo(-0.5,0.3, 0,0.45, 0,0.6);
+  ctx.bezierCurveTo(0,0.45, 0.5,0.3, 0.5,-0.1);
+  ctx.bezierCurveTo(0.5,-0.35, 0,-0.3, 0,0);
+  ctx.closePath();
+  ctx.fillStyle=color;
+  ctx.fill();
+  ctx.restore();
+}
+const sepSlider=document.getElementById('sep');
+const sepVal=document.getElementById('sepVal');
+let separation=parseFloat(sepSlider.value);
+sepSlider.addEventListener('input',()=>{
+  separation=parseFloat(sepSlider.value);
+  sepVal.textContent=separation.toFixed(3);
+});
+function loop(time){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hearts.forEach(h=>{
+    h.y += h.speed*0.001;
+    if(h.y>1.2){h.y=-0.2;h.x=Math.random();h.depth=Math.random();}
+    const baseX = h.x * canvas.width;
+    const baseY = h.y * canvas.height;
+    const offset = separation * (h.depth*2-1) * 100;
+    drawHeart(ctx, baseX - offset, baseY, h.size, `rgba(255,50,100,0.7)`);
+    drawHeart(ctx, baseX + offset, baseY, h.size, `rgba(0,200,220,0.7)`);
+  });
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
