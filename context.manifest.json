@@ -1,0 +1,28 @@
+{
+  "name": "anaglyph_stereo",
+  "type": "FINISHER",
+  "title": "Anaglyph Stereo — 3D Illusions",
+  "brief": "Stereoscopic illusions: Dubois matrix anaglyph, lenticular interlacing, wiggle parallax. Depth-driven view separation. Needs depth map (generated or uploaded).",
+  "inputs": [
+    "u_source",
+    "u_depth"
+  ],
+  "outputs": [
+    "stereo_image"
+  ],
+  "tags": [
+    "finisher",
+    "3D",
+    "anaglyph",
+    "lenticular",
+    "stereo"
+  ],
+  "adjacency": [
+    "sdf_fields",
+    "raymarching",
+    "parallax_depth_fields",
+    "chromatic_aberration"
+  ],
+  "status": "implemented",
+  "batch": "B"
+}
