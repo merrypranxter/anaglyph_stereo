@@ -1,10 +1,10 @@
 # anaglyph_stereo
 
-A creative coding project exploring **stereoscopic illusions** — anaglyph encoding (red-cyan glasses), lenticular interlacing (angle-dependent view switching), and wiggle parallax (no-glasses 3D-GIF). A finisher that requires a depth map.
+A creative coding project exploring **stereoscopic illusions** — anaglyph encoding (red‑cyan glasses), lenticular interlacing (angle‑dependent view switching), and wiggle parallax (no‑glasses 3D‑GIF). A finisher that requires a depth map.
 
 ## What Is This?
 
-A **finisher** that takes a source image + depth map and generates stereoscopic output. Four modes: optimized Dubois matrix anaglyph and naive color anaglyph (for glasses), lenticular strip interlacing (simulated angle tilt), and wiggle parallax (retro 3D-GIF oscillation). It's a real WebGL2 multi-pass renderer — every shader listed below actually runs.
+A **finisher** that takes a source image + depth map and generates stereoscopic output. Four modes: optimized Dubois matrix anaglyph and naive color anaglyph (for glasses), lenticular strip interlacing (simulated angle tilt), and wiggle parallax (retro 3D‑GIF oscillation). It's a real WebGL2 multi‑pass renderer — every shader listed below actually runs.
 
 **Adjacency note:** The `wiggle_parallax` mode overlaps with `parallax_depth_fields`. This repo owns **anaglyph + lenticular**; wiggle is a bonus mode. Pure parallax depth belongs to that repo.
 
@@ -16,9 +16,9 @@ src/
     main.js           — WebGL2 setup, FBO pipeline, render loop, UI wiring
     source.js         — image / webcam / upstream-FBO source handling
     dubois.js         — optimized Dubois matrix constants
-    color-maps.js     — neon palette ramps for the depth-debug view
+    color-maps.js     — neon palette ramps for the depth‑debug view
   shaders/
-    depth/            — swappable depth sources
+    depth/
       sdf-scene.glsl       — sphere-traced sphere + torus + plane
       raymarch-depth.glsl  — domain-repeated pillar corridor
       upload-depth.glsl    — uploaded depth map → luminance passthrough
@@ -26,9 +26,13 @@ src/
     anaglyph.frag       — channel-matrix composite (Dubois or naive)
     lenticular.frag     — N-view strip interlace by angle
     post-process.frag   — ghost-reduction blur, chromatic correction, glitch tear, wiggle resolve
-docs/
-  math-reference.md   — the equations and Dubois matrices, in full
-  visual-targets.md   — what each aesthetic regime should look like
+  docs/
+    math-reference.md   — the equations and Dubois matrices, in full
+    visual-targets.md   — what each aesthetic regime should look like
+  examples/
+    01-hearts.html      — animated hearts anaglyph demo
+    02-text.html        — interactive text depth demo
+    03-starfield.html   — adjustable starfield anaglyph demo
 ```
 
 ## Running
@@ -46,22 +50,22 @@ WebGL2 required.
 
 1. **depth pass** — `sdf-scene.glsl`, `raymarch-depth.glsl`, or `upload-depth.glsl` writes a normalized depth texture.
 2. **views pass** — `views.frag` (MRT) shifts the source by `depth * separation` to generate `viewL` / `viewR`.
-3. **compose pass** — `anaglyph.frag` (Dubois matrix or naive channel split) or `lenticular.frag` (per-pixel strip view selection) for the lenticular mode.
-4. **post pass** — `post-process.frag` applies ghost-reduction blur, chromatic correction, optional glitch tearing, and resolves the wiggle mode's time-alternating view.
+3. **compose pass** — `anaglyph.frag` (Dubois matrix or naive channel split) or `lenticular.frag` (per‑pixel strip view selection) for the lenticular mode.
+4. **post pass** — `post-process.frag` applies ghost‑reduction blur, chromatic correction, optional glitch tearing, and resolves the wiggle mode's time‑alternating view.
 
 ## Current Engines
 
 - [x] _anaglyph_dubois — optimized matrix anaglyph, least ghosting
 - [x] _anaglyph_color — naive red/cyan channel split
-- [x] _lenticular_flip — N-view strip interlace, angle-driven
-- [x] _wiggle_parallax — 2-view 6Hz oscillation, no glasses
+- [x] _lenticular_flip — N‑view strip interlace, angle‑driven
+- [x] _wiggle_parallax — 2‑view 6 Hz oscillation, no glasses
 
 ## Aesthetic Regimes
 
 - [x] red_cyan_classic — Dubois anaglyph, for glasses, minimal ghosting
-- [x] lenticular_ripple — N=8 views, mouse-driven angle → holographic shimmer
-- [x] wiggle_gif — 2-view 6Hz wobble, no glasses, retro 3D-GIF
-- [x] depth_glitch — exaggerated separation → channel-tearing artifact aesthetic
+- [x] lenticular_ripple — N = 8 views, mouse‑driven angle → holographic shimmer
+- [x] wiggle_gif — 2‑view 6 Hz wobble, no glasses, retro 3D‑GIF
+- [x] depth_glitch — exaggerated separation → channel‑tearing artifact aesthetic
 
 Pick any of these from the **preset** dropdown in the control panel, or drive every parameter by hand.
 
@@ -73,10 +77,20 @@ Pick any of these from the **preset** dropdown in the control panel, or drive ev
 - `view_count` — 2–16 (for lenticular)
 - `angle_drive` — mouse | time | gyro
 - `depth_source` — sdf | raymarch | upload (drag in your own grayscale depth map)
-- `ghost_blur`, `chromatic`, `glitch` — post-process finisher controls
+- `ghost_blur`, `chromatic`, `glitch` — post‑process finisher controls
 - `osc_speed` — wiggle oscillation rate in Hz
 
-There's also a **source image** uploader and a **webcam** toggle, and a depth-debug overlay (`show depth map`) that renders the raw depth texture through a neon palette ramp.
+There's also a **source image** uploader and a **webcam** toggle, and a depth‑debug overlay (`show depth map`) that renders the raw depth texture through a neon palette ramp.
+
+## Examples
+
+The `examples/` folder contains simple Canvas‑based anaglyph scenes that don't rely on the WebGL pipeline. Open any of these directly in your browser (no server required) to play with different stereoscopic effects:
+
+- **hearts** – falling hearts tinted red and cyan. Use the separation slider to adjust depth.
+- **text** – type your own text and control how far it floats off the page.
+- **starfield** – a classic 3D starfield with adjustable star count, depth range and separation.
+
+See `examples/README.md` for more details.
 
 ## Ecosystem Hooks
 
