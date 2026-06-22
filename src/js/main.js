@@ -52,8 +52,15 @@ function createProgram(vertSrc, fragSrc) {
   gl.linkProgram(prog);
   if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
     const log = gl.getProgramInfoLog(prog);
+    gl.deleteShader(vs);
+    gl.deleteShader(fs);
+    gl.deleteProgram(prog);
     throw new Error('Program link error: ' + log);
   }
+  gl.detachShader(prog, vs);
+  gl.detachShader(prog, fs);
+  gl.deleteShader(vs);
+  gl.deleteShader(fs);
   return prog;
 }
 
@@ -163,6 +170,7 @@ let depthUploadTex = null;
 let rampTex;
 
 let depthPrograms = {};
+let depthU = {};
 let viewsProgram, viewsU;
 let anaglyphProgram, anaglyphU;
 let lenticularProgram, lenticularU;
@@ -190,6 +198,10 @@ async function init() {
   depthPrograms.sdf = createProgram(VERT_SRC, sdfSrc);
   depthPrograms.raymarch = createProgram(VERT_SRC, raymarchSrc);
   depthPrograms.upload = createProgram(VERT_SRC, uploadSrc);
+
+  depthU.sdf = uniformLocs(depthPrograms.sdf, ['u_resolution', 'u_time']);
+  depthU.raymarch = uniformLocs(depthPrograms.raymarch, ['u_resolution', 'u_time']);
+  depthU.upload = uniformLocs(depthPrograms.upload, ['u_depthUpload', 'u_invert']);
 
   viewsProgram = createProgram(VERT_SRC, viewsSrc);
   viewsU = uniformLocs(viewsProgram, ['u_source', 'u_depth', 'u_separation', 'u_depthScale']);
@@ -255,22 +267,22 @@ function resize() {
 // ---------- render passes ----------
 
 function renderDepth(time) {
-  const prog = state.depthSource === 'upload' ? depthPrograms.upload
-    : state.depthSource === 'raymarch' ? depthPrograms.raymarch
-    : depthPrograms.sdf;
+  const source = state.depthSource;
+  const prog = depthPrograms[source] || depthPrograms.sdf;
+  const u = depthU[source] || depthU.sdf;
 
   gl.bindFramebuffer(gl.FRAMEBUFFER, depthFBO);
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.useProgram(prog);
 
-  if (state.depthSource === 'upload') {
-    gl.uniform1i(gl.getUniformLocation(prog, 'u_depthUpload'), 0);
+  if (source === 'upload') {
+    gl.uniform1i(u.u_depthUpload, 0);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, depthUploadTex);
-    gl.uniform1i(gl.getUniformLocation(prog, 'u_invert'), state.invertDepth ? 1 : 0);
+    gl.uniform1i(u.u_invert, state.invertDepth ? 1 : 0);
   } else {
-    gl.uniform2f(gl.getUniformLocation(prog, 'u_resolution'), canvas.width, canvas.height);
-    gl.uniform1f(gl.getUniformLocation(prog, 'u_time'), time);
+    gl.uniform2f(u.u_resolution, canvas.width, canvas.height);
+    gl.uniform1f(u.u_time, time);
   }
   drawQuad();
 }
@@ -466,6 +478,7 @@ function wireUI() {
 
   el('palette').addEventListener('change', (e) => {
     state.palette = e.target.value;
+    if (rampTex) gl.deleteTexture(rampTex);
     rampTex = buildRamp(gl, PALETTES[state.palette]);
   });
 

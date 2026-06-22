@@ -27,11 +27,11 @@ uniform float u_chromatic;   // UV offset for RGB fringe correction
 uniform float u_glitch;      // 0.0–1.0 tearing amount (depth_glitch)
 uniform bool u_showDepth;
 
+float wiggleEdge = 0.0;
+
 vec3 sampleScene(vec2 uv) {
   if (u_wiggle) {
-    float phase = sin(u_time * 6.28318530718 * u_oscSpeed);
-    float edge = smoothstep(-0.05, 0.05, phase);
-    return mix(texture(u_viewR, uv).rgb, texture(u_viewL, uv).rgb, edge);
+    return mix(texture(u_viewR, uv).rgb, texture(u_viewL, uv).rgb, wiggleEdge);
   }
   return texture(u_input, uv).rgb;
 }
@@ -43,16 +43,23 @@ void main() {
     return;
   }
 
+  if (u_wiggle) {
+    float phase = sin(u_time * 6.28318530718 * u_oscSpeed);
+    wiggleEdge = smoothstep(-0.05, 0.05, phase);
+  }
+
   vec2 px = 1.0 / u_resolution;
+  vec3 color = sampleScene(v_uv);
 
   // ghost-reduction: small 5-tap cross blur, blended in by u_ghostBlur
-  vec3 blurred = sampleScene(v_uv) * 0.4;
-  blurred += sampleScene(v_uv + vec2(px.x, 0.0)) * 0.15;
-  blurred += sampleScene(v_uv - vec2(px.x, 0.0)) * 0.15;
-  blurred += sampleScene(v_uv + vec2(0.0, px.y)) * 0.15;
-  blurred += sampleScene(v_uv - vec2(0.0, px.y)) * 0.15;
-  vec3 sharp = sampleScene(v_uv);
-  vec3 color = mix(sharp, blurred, clamp(u_ghostBlur, 0.0, 1.0));
+  if (u_ghostBlur > 0.001) {
+    vec3 blurred = color * 0.4;
+    blurred += sampleScene(v_uv + vec2(px.x, 0.0)) * 0.15;
+    blurred += sampleScene(v_uv - vec2(px.x, 0.0)) * 0.15;
+    blurred += sampleScene(v_uv + vec2(0.0, px.y)) * 0.15;
+    blurred += sampleScene(v_uv - vec2(0.0, px.y)) * 0.15;
+    color = mix(color, blurred, clamp(u_ghostBlur, 0.0, 1.0));
+  }
 
   // chromatic correction: nudge each channel's sample point independently
   if (u_chromatic > 0.0001) {

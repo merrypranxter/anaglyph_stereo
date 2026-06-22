@@ -26,9 +26,17 @@ export class Source {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   }
 
+  _stopVideo() {
+    if (this.video && this.video.srcObject) {
+      this.video.srcObject.getTracks().forEach((track) => track.stop());
+      this.video.srcObject = null;
+    }
+    this.video = null;
+  }
+
   uploadImageElement(img) {
     const gl = this.gl;
-    this.video = null;
+    this._stopVideo();
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     this._setFilters();
@@ -50,6 +58,7 @@ export class Source {
   }
 
   async fromWebcam() {
+    this._stopVideo();
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     const video = document.createElement('video');
     video.srcObject = stream;
@@ -73,7 +82,7 @@ export class Source {
 
   // adopt an externally-rendered texture (e.g. an upstream finisher's FBO output)
   fromFBO(texture, width, height) {
-    this.video = null;
+    this._stopVideo();
     this.texture = texture;
     this.width = width;
     this.height = height;

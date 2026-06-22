@@ -18,15 +18,15 @@ float sdBox(vec3 p, vec3 b) {
   return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
 }
 
-vec3 repeat(vec3 p, vec3 c) {
+vec2 repeat(vec2 p, vec2 c) {
   return mod(p + 0.5 * c, c) - 0.5 * c;
 }
 
 float map(vec3 p) {
   vec3 q = p;
   q.z += u_time * 0.5; // drift forward through the corridor
-  vec3 rp = repeat(q, vec3(1.6, 0.0, 1.6));
-  rp.y = p.y;
+  vec2 rxz = repeat(q.xz, vec2(1.6, 1.6));
+  vec3 rp = vec3(rxz.x, p.y, rxz.y);
   float pillars = sdBox(rp, vec3(0.18, 0.9, 0.18));
   float floorPlane = p.y + 0.9;
   return min(pillars, floorPlane);
