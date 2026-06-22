@@ -170,6 +170,7 @@ let depthUploadTex = null;
 let rampTex;
 
 let depthPrograms = {};
+let depthPrograms = {};
 let depthU = {};
 let viewsProgram, viewsU;
 let anaglyphProgram, anaglyphU;
